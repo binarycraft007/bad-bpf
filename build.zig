@@ -95,6 +95,7 @@ const uapi_header = "include/uapi/linux";
 const libbpf_src = [_][]const u8{
     "src/bpf.c",
     "src/btf.c",
+    "src/libbpf.c",
     "src/libbpf_errno.c",
     "src/netlink.c",
     "src/nlattr.c",
