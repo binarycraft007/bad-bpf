@@ -19,6 +19,10 @@
             .url = "git+https://github.com/libbpf/libbpf#3b0973892891744d20ae79e99c0d1a26a59c4222",
             .hash = "12209d895f5d3718e1d6c7c387e6c7bce8c04513e972f7bb774c54967a84e4c56db8",
         },
+        .elf = .{
+            .url = "git+https://github.com/binarycraft007/libelf#8125023fc8e87c53c771cd5288fbf54740816b1c",
+            .hash = "12209f11f5c50c2ad33344e66ba6fc4edc5a225c218123436d6625a2d0d63ebd0f2c",
+        },
     },
     .paths = .{
         // This makes *all* files, recursively, included in this package. It is generally

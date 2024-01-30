@@ -15,6 +15,10 @@ pub fn build(b: *std.Build) void {
     lib.linkLibC();
     lib.defineCMacro("_LARGEFILE64_SOURCE", null);
     lib.defineCMacro("_FILE_OFFSET_BITS", "64");
+    lib.root_module.linkLibrary(b.dependency("elf", .{
+        .target = target,
+        .optimize = optimize,
+    }).artifact("elf"));
     lib.addCSourceFiles(.{
         .dependency = bpf_dep,
         .files = &libbpf_src,
