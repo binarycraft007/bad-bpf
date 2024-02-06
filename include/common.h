@@ -17,19 +17,19 @@
 // in the kernel to user spcae
 #define TASK_COMM_LEN 16
 struct event {
-    int pid;
-    char comm[TASK_COMM_LEN];
-    bool success;
+	int pid;
+	char comm[TASK_COMM_LEN];
+	bool success;
 };
 
 struct tr_file {
-    char filename[FILENAME_LEN_MAX];
-    unsigned int filename_len;
+	char filename[FILENAME_LEN_MAX];
+	unsigned int filename_len;
 };
 
 struct tr_text {
-    char text[TEXT_LEN_MAX];
-    unsigned int text_len;
+	char text[TEXT_LEN_MAX];
+	unsigned int text_len;
 };
 
-#endif  // BAD_BPF_COMMON_H
+#endif // BAD_BPF_COMMON_H

@@ -3,61 +3,55 @@ const std = @import("std");
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
-    const bpf_dep = b.dependency("bpf", .{
+    const t = target.result;
+    const obj = b.addObject(.{
+        .name = "exechijack.bpf",
+        .target = b.resolveTargetQuery(.{
+            .cpu_arch = switch (t.cpu.arch.endian()) {
+                .big => .bpfeb,
+                .little => .bpfel,
+            },
+            .os_tag = .freestanding,
+        }),
+        .optimize = .ReleaseFast,
+    });
+    obj.addIncludePath(.{ .path = "include" });
+    obj.addCSourceFile(.{
+        .file = .{ .path = "src/exechijack.bpf.c" },
+        .flags = &.{"-g"},
+    });
+    addOtherIncludePath(obj, b.dependency("bpf", .{
         .target = target,
         .optimize = optimize,
+    }).artifact("bpf"));
+
+    const cmd = b.addSystemCommand(&[_][]const u8{
+        "bpftool",
+        "gen",
+        "skeleton",
     });
-    const lib = b.addStaticLibrary(.{
-        .name = "bpf",
-        .target = target,
-        .optimize = optimize,
-    });
-    lib.linkLibC();
-    lib.defineCMacro("_LARGEFILE64_SOURCE", null);
-    lib.defineCMacro("_FILE_OFFSET_BITS", "64");
-    lib.root_module.linkLibrary(b.dependency("elf", .{
-        .target = target,
-        .optimize = optimize,
-    }).artifact("elf"));
-    lib.addCSourceFiles(.{
-        .dependency = bpf_dep,
-        .files = &libbpf_src,
-        .flags = &.{},
-    });
-    inline for (header_files) |file| {
-        lib.installHeadersDirectoryOptions(.{
-            .source_dir = bpf_dep.path("src"),
-            .install_dir = .header,
-            .install_subdir = "bpf",
-            .include_extensions = &.{file},
-        });
-    }
-    inline for (uapi_files) |file| {
-        lib.installHeadersDirectoryOptions(.{
-            .source_dir = bpf_dep.path(uapi_header),
-            .install_dir = .header,
-            .install_subdir = "linux",
-            .include_extensions = &.{file},
-        });
-    }
-    lib.installHeadersDirectoryOptions(.{
-        .source_dir = .{ .path = "include" },
-        .install_dir = .header,
-        .install_subdir = "",
-        .include_extensions = &.{"vmlinux.h"},
-    });
-    lib.addIncludePath(bpf_dep.path("src"));
-    lib.addIncludePath(bpf_dep.path("include"));
-    lib.addIncludePath(bpf_dep.path("include/uapi"));
-    lib.addIncludePath(.{ .path = "include" });
-    b.installArtifact(lib);
+    cmd.addArtifactArg(obj);
+    const skeleton = cmd.captureStdOut();
+    cmd.captured_stdout.?.basename = "exechijack.skel.h";
 
     const exe = b.addExecutable(.{
         .name = "bad-bpf",
-        .root_source_file = .{ .path = "src/main.zig" },
         .target = target,
         .optimize = optimize,
     });
+    exe.addCSourceFile(.{
+        .file = .{ .path = "src/exechijack.c" },
+        .flags = &.{},
+    });
+    exe.linkLibrary(b.dependency("bpf", .{
+        .target = target,
+        .optimize = optimize,
+    }).artifact("bpf"));
+    exe.addIncludePath(.{ .path = "include" });
+    //exe.root_module.addAnonymousImport("bpf", .{
+    //    .root_source_file = obj.getEmittedBin(),
+    //});
+    exe.addIncludePath(skeleton.dirname());
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
@@ -90,49 +84,16 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_exe_unit_tests.step);
 }
 
-const uapi_header = "include/uapi/linux";
-
-const libbpf_src = [_][]const u8{
-    "src/bpf.c",
-    "src/btf.c",
-    "src/libbpf.c",
-    "src/libbpf_errno.c",
-    "src/netlink.c",
-    "src/nlattr.c",
-    "src/str_error.c",
-    "src/libbpf_probes.c",
-    "src/bpf_prog_linfo.c",
-    "src/btf_dump.c",
-    "src/hashmap.c",
-    "src/ringbuf.c",
-    "src/strset.c",
-    "src/linker.c",
-    "src/gen_loader.c",
-    "src/relo_core.c",
-    "src/usdt.c",
-    "src/zip.c",
-    "src/elf.c",
-    "src/features.c",
-};
-
-const header_files = [_][]const u8{
-    "bpf.h",
-    "libbpf.h ",
-    "btf.h",
-    "libbpf_common.h",
-    "libbpf_legacy.h",
-    "bpf_helpers.h",
-    "bpf_helper_defs.h",
-    "bpf_tracing.h",
-    "bpf_endian.h",
-    "bpf_core_read.h",
-    "skel_internal.h",
-    "libbpf_version.h",
-    "usdt.bpf.h",
-};
-
-const uapi_files = [_][]const u8{
-    "bpf.h",
-    "bpf_common.h",
-    "btf.h",
-};
+pub fn addOtherIncludePath(
+    self: *std.Build.Step.Compile,
+    other: *std.Build.Step.Compile,
+) void {
+    const b = self.root_module.owner;
+    self.root_module.include_dirs.append(
+        b.allocator,
+        .{ .other_step = other },
+    ) catch @panic("OOM");
+    for (other.installed_headers.items) |step| {
+        other.step.dependOn(step);
+    }
+}

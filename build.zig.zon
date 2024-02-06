@@ -16,12 +16,8 @@
     // internet connectivity.
     .dependencies = .{
         .bpf = .{
-            .url = "git+https://github.com/libbpf/libbpf#3b0973892891744d20ae79e99c0d1a26a59c4222",
-            .hash = "12209d895f5d3718e1d6c7c387e6c7bce8c04513e972f7bb774c54967a84e4c56db8",
-        },
-        .elf = .{
-            .url = "git+https://github.com/binarycraft007/libelf#8125023fc8e87c53c771cd5288fbf54740816b1c",
-            .hash = "12209f11f5c50c2ad33344e66ba6fc4edc5a225c218123436d6625a2d0d63ebd0f2c",
+            .url = "git+https://github.com/binarycraft007/libbpf#9af6cdd69cf148502fe607b3742058628f0e2476",
+            .hash = "1220f7968c9c22d30985b4b8e0d656333721243438e569807b1dfb47549105e421b5",
         },
     },
     .paths = .{
