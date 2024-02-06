@@ -70,6 +70,7 @@ pub fn addBpfProgram(
     });
     const target_arch = switch (t.cpu.arch) {
         .x86, .x86_64 => "__TARGET_ARCH_x86",
+        .aarch64 => "__TARGET_ARCH_arm64",
         else => @panic("unsupported arch"),
     };
     obj.defineCMacro(target_arch, null);
