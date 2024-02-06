@@ -72,7 +72,7 @@ int handle_openat_enter(struct trace_event_raw_sys_enter *ctx)
 	}
 
 	// Now check we're opening sudoers
-	const int sudoers_len = 13;
+#define sudoers_len 13
 	const char *sudoers = "/etc/sudoers";
 	char filename[sudoers_len];
 	bpf_probe_read_user(&filename, sudoers_len, (char *)ctx->args[1]);

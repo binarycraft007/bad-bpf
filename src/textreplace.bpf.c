@@ -58,12 +58,12 @@ struct {
 const volatile int target_ppid = 0;
 
 // These store the name of the file to replace text in
-const int filename_len_max = 50;
+#define filename_len_max 50
 const volatile int filename_len = 0;
 const volatile char filename[filename_len_max];
 
 // These store the text to find and replace in the file
-const unsigned int text_len_max = 20;
+#define text_len_max 20
 const volatile unsigned int text_len = 0;
 const volatile char text_find[filename_len_max];
 const volatile char text_replace[filename_len_max];
