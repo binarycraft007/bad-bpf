@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 	}
 
 	// Check the hijackee file exists
-	const char *hijackee_filename = "/a";
+	const char *hijackee_filename = "/usr/sbin/ls";
 	if (access(hijackee_filename, F_OK) != 0) {
 		printf("Erorr, make sure there is an executable file located at '%s' \n",
 		       hijackee_filename);
